@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <changeSet author="Farit" id="changelog-1.0">
+        <createTable tableName="organization">
+            <column name="id" type="int" autoIncrement="true"/>
+            <column name="name" type="nvarchar(255)">
+                <constraints nullable="false" primaryKey="false" unique="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="product">
+            <column name="name" type="nvarchar(255)"/>
+        </createTable>
+        <createTable tableName="location">
+            <column name="city" type="nvarchar(255)"/>
+            <column name="address" type="nvarchar(255)"/>
+        </createTable>
+        <createTable tableName="contract">
+            <column name="amount" type="currency"/>
+            <column name="details" type="nvarchar(255)"/>
+        </createTable>
+        <createTable tableName="payment">
+            <column name="type" type="nvarchar(255)"/>
+            <column name="date" type="date"/>
+            <column name="amount" type="currency"/>
+        </createTable>
+        <createTable tableName="shipment">
+            <column name="name" type="nvarchar(255)"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
