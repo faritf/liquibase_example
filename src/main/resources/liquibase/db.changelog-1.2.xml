@@ -16,75 +16,33 @@
             insert into payment ("contractId", type, date, amount) VALUES (1, 'card', now(), 500);
             insert into payment ("contractId", type, date, amount) VALUES (1, 'cash', now(), 500);
             insert into payment ("contractId", type, date, amount) VALUES (2, 'card', now(), 500);
+
+            insert into product (name) values ('product1');
+
+
+            insert into location (city, address) values ('Kazan', 'Kazan');
+            insert into location (city, address) values ('Innopolis', 'Innopolis');
+
+            insert into shipment ("fromLocationId", "toLocationId", "organisationId", "estimatedShipmentDate", "realShipmentDate",
+            "estimatedDeliveryDate", "realDeliveryDate", "parentShipmentId")
+            values (1, 2, 1, null, null, null, null, null);
+
+            insert into shipment_item ("shipmentId", "productId", quantity) values (1, 1, 1);
+            insert into shipment_item ("shipmentId", "productId", quantity) values (1, 1, 9);
+            insert into shipment_item ("shipmentId", "productId", quantity) values (1, 1, 1);
+            insert into shipment_item ("shipmentId", "productId", quantity) values (1, 1, 1);
+
+            insert into shipment_item ("shipmentId", "productId", quantity) values (1, 1, 15);
+
+            insert into shipment_item ("shipmentId", "productId", quantity) values (1, 1, 24);
         </sql>
         <rollback>
             truncate table organization restart identity;
             truncate table contract restart identity;
             truncate table payment restart identity;
+            truncate table product restart identity;
+            truncate table location restart identity;
+            truncate table shipment restart identity cascade;
         </rollback>
     </changeSet>
-    <!--changeSet author="Farit" id="changelog-1.1.2">
-        <createProcedure>
-            create or replace function process_shipment_item_check() returns trigger as $shipment_item_check$
-            declare
-              items_limit int;
-              shipments_count int;
-              items_count int;
-              new_items_count int;
-              need_shipments_count int;
-              quantity_left int;
-              free_places_count int;
-            begin
-              items_limit := 10;
-
-              if (tg_op = 'INSERT') then /* + UPDATE needed, check new.quantity not null and not 0*/
-                shipments_count := (select count(*) + 1 from shipment where parentShipmentId = new."shipmentId");
-                items_count := coalesce((select sum (quantity)
-                                         from shipment_item
-                                         where "shipmentId" in (select id
-                                                                from shipment
-                                                                where parentShipmentId = new."shipmentId"
-                                                                union
-                                                                select new."shipmentId")), 0);
-
-                new_items_count := items_count + new.quantity;
-
-                need_shipments_count := 1 + new_items_count / items_limit;
-                free_places_count := shipments_count * 10 - items_count;
-                quantity_left := new.quantity;
-
-
-                /*pseudocode
-                current_shipment_id = select max from shipment
-                do
-                  if free_places_count = 0 then
-                    insert into shipment values from first_shipment with select id into current_shipment_id;
-                    free_places_count = 10
-                  end if;
-
-                  delta_itm_cnt = min(free_places_count, quantity_left);
-                  insert  shipment_item values delta_itm_cnt;
-                  free_places_count = free_places_count - delta_itm_cnt;
-                  quantity_left = quantity_left - delta_itm_cnt;
-                while quantity_left > 0
-                */
-
-              end if;
-              return new;
-            end
-            $shipment_item_check$ language plpgsql;
-
-
-
-            drop trigger if exists shipment_item_check on shipment_item;
-
-            create trigger shipment_item_check
-              instead of insert on shipment_item
-              for each row execute procedure process_shipment_item_check();
-        </createProcedure>
-        <rollback>
-            drop trigger if exists shipment_item_check on shipment_item;
-            drop function if exists process_shipment_item_check();
-        </rollback>
-    </changeSet-->
 </databaseChangeLog>

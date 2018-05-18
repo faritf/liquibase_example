@@ -8,13 +8,13 @@
         <createProcedure>
             create or replace function process_contract_audit() returns trigger as $contract_audit$
             begin
-            if (tg_op = 'INSERT') then
-            if (new.amount > 1000) then
-            insert into audit select new.id, new.amount, new.details, now();
-            end if;
-            return new;
-            end if;
-            return null;
+                if (tg_op = 'INSERT') then
+                    if (new.amount > 1000) then
+                        insert into audit select new.id, new.amount, new.details, now();
+                    end if;
+                    return new;
+                end if;
+                return null;
             end;
             $contract_audit$ language plpgsql;
 
@@ -29,26 +29,77 @@
             drop function if exists process_contract_audit();
         </rollback>
     </changeSet>
-    <!--changeSet author="Farit" id="changelog-1.1.2">
+    <changeSet author="Farit" id="changelog-1.1.2">
         <createProcedure>
-            create or replace function process_payment_check() returns trigger as $payment_check$
+            create or replace function process_shipment_item_check() returns trigger as $shipment_item_check$
+            declare
+                items_limit int;
+                main_shipment_id bigint;
+                last_shipment_id bigint;
+                shipments_count int;
+                items_count int;
+                free_places_count int;
+                quantity_left int;
+                quantity_to_insert int;
             begin
-            if (new.amount > 500) then
-            raise exception 'Payment must be less or equal 500 (you''re trying %)', new.amount;
-            end if;
-            return new;
-            end;
-            $payment_check$ language plpgsql;
+                items_limit := 10;
 
-            drop trigger if exists check_payment on payment ;
+                if (tg_op = 'INSERT') then /* + UPDATE needed*/
+                    main_shipment_id := (select coalesce("parentShipmentId", id) from shipment where id = new."shipmentId");
 
-            create trigger check_payment
-            before insert on payment
-            for each row execute procedure process_payment_check();
+                    select count(distinct s.id), max(s.id), sum(coalesce(si.quantity, 0))
+                    into shipments_count, last_shipment_id, items_count
+                    from shipment s
+                    left join shipment_item si on si."shipmentId" = s.id
+                    where main_shipment_id in (s.id, s."parentShipmentId");
+
+                    free_places_count := shipments_count * 10 - items_count;
+                    quantity_left := new.quantity;
+
+                    if (free_places_count >= quantity_left) then
+                        new."shipmentId" = last_shipment_id;
+                        return new;
+                    end if;
+
+                    loop
+                        if (free_places_count = 0) then
+                            insert into shipment ("parentShipmentId", "fromLocationId", "toLocationId", "organisationId",
+                            "estimatedShipmentDate", "realShipmentDate", "estimatedDeliveryDate", "realDeliveryDate")
+                            select coalesce("parentShipmentId", id), "fromLocationId", "toLocationId", "organisationId",
+                            "estimatedShipmentDate", "realShipmentDate", "estimatedDeliveryDate", "realDeliveryDate"
+                            from shipment
+                            where id = last_shipment_id
+                            returning id into last_shipment_id;
+
+                            free_places_count := 10;
+                        end if;
+
+                        quantity_to_insert := least(free_places_count, quantity_left);
+
+                        insert into shipment_item ("shipmentId", "productId", quantity)
+                        values (last_shipment_id, new."productId", quantity_to_insert);
+
+                        free_places_count := free_places_count - quantity_to_insert;
+                        quantity_left := quantity_left - quantity_to_insert;
+
+                        exit when quantity_left = 0;
+                    end loop;
+
+                    return null;
+
+                end if;
+                return new;
+            end
+            $shipment_item_check$ language plpgsql;
+
+            drop trigger if exists shipment_item_check on shipment_item;
+            create trigger shipment_item_check
+            before insert on shipment_item
+            for each row execute procedure process_shipment_item_check();
         </createProcedure>
         <rollback>
-            drop trigger if exists check_payment on payment ;
-            drop function if exists process_payment_check();
+            drop trigger if exists shipment_item_check on shipment_item;
+            drop function if exists process_shipment_item_check();
         </rollback>
-    </changeSet-->
+    </changeSet>
 </databaseChangeLog>

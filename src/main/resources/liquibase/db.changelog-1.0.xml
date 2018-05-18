@@ -13,6 +13,7 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
         <createTable tableName="product">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
@@ -21,6 +22,7 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
         <createTable tableName="location">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
@@ -32,6 +34,7 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
         <createTable tableName="contract">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
@@ -44,6 +47,7 @@
             </column>
             <column name="details" type="nvarchar(255)"/>
         </createTable>
+
         <createTable tableName="audit">
             <column name="contractId" type="bigint" >
                 <constraints nullable="false" foreignKeyName="fk_audit_contract" references="contract(id)"/>
@@ -56,6 +60,7 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
         <createTable tableName="payment">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
@@ -76,6 +81,7 @@
         <sql>
             ALTER TABLE payment ADD CONSTRAINT amount_not_bigger_500_check CHECK (amount &lt;= 500);
         </sql>
+
         <createTable tableName="shipment">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
@@ -102,9 +108,10 @@
                 <constraints nullable="true"/>
             </column>
             <column name="parentShipmentId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_shipment_shipment" references="shipment(id)"/>
+                <constraints nullable="true" foreignKeyName="fk_shipment_shipment" references="shipment(id)"/>
             </column>
         </createTable>
+
         <createTable tableName="shipment_item">
             <column name="shipmentId" type="bigint" >
                 <constraints nullable="false" foreignKeyName="fk_shipment_item_shipment" references="shipment(id)"/>
@@ -116,5 +123,8 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <sql>
+            ALTER TABLE shipment_item ADD CONSTRAINT positive_quantity_check CHECK (quantity > 0);
+        </sql>
     </changeSet>
 </databaseChangeLog>
