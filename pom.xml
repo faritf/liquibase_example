@@ -30,11 +30,12 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>3.6.1</version>
                 <configuration>
-                    <propertyFile>src/main/resources/liquibase/liquibase.aws.properties</propertyFile>
+                    <propertyFile>src/main/resources/liquibase/liquibase.properties</propertyFile>
+                    <contexts>test</contexts>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>process-resources</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>update</goal>
                         </goals>

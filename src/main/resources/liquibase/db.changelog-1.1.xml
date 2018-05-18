@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <changeSet author="Farit" id="changelog-1.1.1" runOnChange="true" context="prod, test">
+        <createProcedure>
+            create or replace function process_contract_audit() returns trigger as $contract_audit$
+            begin
+            if (tg_op = 'INSERT') then
+            if (new.amount > 1000) then
+            insert into audit select new.id, new.amount, new.details, now();
+            end if;
+            return new;
+            end if;
+            return null;
+            end;
+            $contract_audit$ language plpgsql;
+
+            drop trigger if exists contract_audit on contract;
+
+            create trigger contract_audit
+            after insert on contract
+            for each row execute procedure process_contract_audit();
+        </createProcedure>
+        <rollback>
+            drop trigger if exists contract_audit on contract;
+            drop function if exists process_contract_audit();
+        </rollback>
+    </changeSet>
+    <!--changeSet author="Farit" id="changelog-1.1.2">
+        <createProcedure>
+            create or replace function process_payment_check() returns trigger as $payment_check$
+            begin
+            if (new.amount > 500) then
+            raise exception 'Payment must be less or equal 500 (you''re trying %)', new.amount;
+            end if;
+            return new;
+            end;
+            $payment_check$ language plpgsql;
+
+            drop trigger if exists check_payment on payment ;
+
+            create trigger check_payment
+            before insert on payment
+            for each row execute procedure process_payment_check();
+        </createProcedure>
+        <rollback>
+            drop trigger if exists check_payment on payment ;
+            drop function if exists process_payment_check();
+        </rollback>
+    </changeSet-->
+</databaseChangeLog>

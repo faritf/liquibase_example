@@ -4,31 +4,117 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
-    <changeSet author="Farit" id="changelog-1.0">
+    <changeSet author="Farit" id="changelog-1.0" runOnChange="true" context="prod, test">
         <createTable tableName="organization">
-            <column name="id" type="int" autoIncrement="true"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
             <column name="name" type="nvarchar(255)">
-                <constraints nullable="false" primaryKey="false" unique="false"/>
+                <constraints nullable="false"/>
             </column>
         </createTable>
         <createTable tableName="product">
-            <column name="name" type="nvarchar(255)"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="nvarchar(255)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
         <createTable tableName="location">
-            <column name="city" type="nvarchar(255)"/>
-            <column name="address" type="nvarchar(255)"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="city" type="nvarchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="nvarchar(255)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
         <createTable tableName="contract">
-            <column name="amount" type="currency"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="organizationId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_contract_organization" references="organization(id)"/>
+            </column>
+            <column name="amount" type="currency">
+                <constraints nullable="false"/>
+            </column>
             <column name="details" type="nvarchar(255)"/>
         </createTable>
-        <createTable tableName="payment">
-            <column name="type" type="nvarchar(255)"/>
-            <column name="date" type="date"/>
-            <column name="amount" type="currency"/>
+        <createTable tableName="audit">
+            <column name="contractId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_audit_contract" references="contract(id)"/>
+            </column>
+            <column name="amount" type="currency">
+                <constraints nullable="false"/>
+            </column>
+            <column name="details" type="nvarchar(255)"/>
+            <column name="eventdate" type="datetime">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
+        <createTable tableName="payment">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="contractId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_audit_contract" references="contract(id)"/>
+            </column>
+            <column name="type" type="nvarchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="currency">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            ALTER TABLE payment ADD CONSTRAINT amount_not_bigger_500_check CHECK (amount &lt;= 500);
+        </sql>
         <createTable tableName="shipment">
-            <column name="name" type="nvarchar(255)"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="fromLocationId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_from_location" references="location(id)"/>
+            </column>
+            <column name="toLocationId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_to_location" references="location(id)"/>
+            </column>
+            <column name="organisationId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_organization" references="organization(id)"/>
+            </column>
+            <column name="estimatedShipmentDate" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="realShipmentDate" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="estimatedDeliveryDate" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="realDeliveryDate" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="parentShipmentId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_shipment" references="shipment(id)"/>
+            </column>
+        </createTable>
+        <createTable tableName="shipment_item">
+            <column name="shipmentId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_item_shipment" references="shipment(id)"/>
+            </column>
+            <column name="productId" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_item_product" references="product(id)"/>
+            </column>
+            <column name="quantity" type="int">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 </databaseChangeLog>
