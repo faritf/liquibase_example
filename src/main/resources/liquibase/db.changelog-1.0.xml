@@ -95,16 +95,16 @@
             <column name="organisationId" type="bigint" >
                 <constraints nullable="false" foreignKeyName="fk_shipment_organization" references="organization(id)"/>
             </column>
-            <column name="estimatedShipmentDate" type="datetime">
+            <column name="estimatedShipmentDate" type="timestamp">
                 <constraints nullable="true"/>
             </column>
-            <column name="realShipmentDate" type="datetime">
+            <column name="realShipmentDate" type="timestamp">
                 <constraints nullable="true"/>
             </column>
-            <column name="estimatedDeliveryDate" type="datetime">
+            <column name="estimatedDeliveryDate" type="timestamp">
                 <constraints nullable="true"/>
             </column>
-            <column name="realDeliveryDate" type="datetime">
+            <column name="realDeliveryDate" type="timestamp">
                 <constraints nullable="true"/>
             </column>
             <column name="parentShipmentId" type="bigint" >
