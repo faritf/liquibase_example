@@ -6,7 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
     <changeSet author="Farit" id="changelog-1.0" runOnChange="true" context="prod, test">
         <createTable tableName="organization">
-            <column name="id" type="bigint" autoIncrement="true">
+            <column name="organization_id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
             <column name="name" type="nvarchar(255)">
@@ -15,7 +15,7 @@
         </createTable>
 
         <createTable tableName="product">
-            <column name="id" type="bigint" autoIncrement="true">
+            <column name="product_id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
             <column name="name" type="nvarchar(255)">
@@ -24,7 +24,7 @@
         </createTable>
 
         <createTable tableName="location">
-            <column name="id" type="bigint" autoIncrement="true">
+            <column name="location_id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
             <column name="city" type="nvarchar(255)">
@@ -36,11 +36,11 @@
         </createTable>
 
         <createTable tableName="contract">
-            <column name="id" type="bigint" autoIncrement="true">
+            <column name="contract_id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="organizationId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_contract_organization" references="organization(id)"/>
+            <column name="organization_id" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_contract_organization" references="organization"/>
             </column>
             <column name="amount" type="currency">
                 <constraints nullable="false"/>
@@ -49,8 +49,8 @@
         </createTable>
 
         <createTable tableName="audit">
-            <column name="contractId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_audit_contract" references="contract(id)"/>
+            <column name="contract_id" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_audit_contract" references="contract"/>
             </column>
             <column name="amount" type="currency">
                 <constraints nullable="false"/>
@@ -62,11 +62,11 @@
         </createTable>
 
         <createTable tableName="payment">
-            <column name="id" type="bigint" autoIncrement="true">
+            <column name="payment_id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="contractId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_audit_contract" references="contract(id)"/>
+            <column name="contract_id" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_audit_contract" references="contract"/>
             </column>
             <column name="type" type="nvarchar(255)">
                 <constraints nullable="false"/>
@@ -83,41 +83,41 @@
         </sql>
 
         <createTable tableName="shipment">
-            <column name="id" type="bigint" autoIncrement="true">
+            <column name="shipment_id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="fromLocationId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_shipment_from_location" references="location(id)"/>
+            <column name="parent_shipment_id" type="bigint" >
+                <constraints nullable="true" foreignKeyName="fk_shipment_shipment" references="shipment"/>
             </column>
-            <column name="toLocationId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_shipment_to_location" references="location(id)"/>
+            <column name="from_location_id" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_from_location" references="location"/>
             </column>
-            <column name="organisationId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_shipment_organization" references="organization(id)"/>
+            <column name="to_location_id" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_to_location" references="location"/>
             </column>
-            <column name="estimatedShipmentDate" type="timestamp">
+            <column name="organisation_id" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_organization" references="organization"/>
+            </column>
+            <column name="estimated_shipment_date" type="timestamp">
                 <constraints nullable="true"/>
             </column>
-            <column name="realShipmentDate" type="timestamp">
+            <column name="real_shipment_date" type="timestamp">
                 <constraints nullable="true"/>
             </column>
-            <column name="estimatedDeliveryDate" type="timestamp">
+            <column name="estimated_delivery_date" type="timestamp">
                 <constraints nullable="true"/>
             </column>
-            <column name="realDeliveryDate" type="timestamp">
+            <column name="real_delivery_date" type="timestamp">
                 <constraints nullable="true"/>
-            </column>
-            <column name="parentShipmentId" type="bigint" >
-                <constraints nullable="true" foreignKeyName="fk_shipment_shipment" references="shipment(id)"/>
             </column>
         </createTable>
 
         <createTable tableName="shipment_item">
-            <column name="shipmentId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_shipment_item_shipment" references="shipment(id)"/>
+            <column name="shipment_id" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_item_shipment" references="shipment"/>
             </column>
-            <column name="productId" type="bigint" >
-                <constraints nullable="false" foreignKeyName="fk_shipment_item_product" references="product(id)"/>
+            <column name="product_id" type="bigint" >
+                <constraints nullable="false" foreignKeyName="fk_shipment_item_product" references="product"/>
             </column>
             <column name="quantity" type="int">
                 <constraints nullable="false"/>

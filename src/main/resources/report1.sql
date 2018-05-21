@@ -5,16 +5,14 @@
 
 select o.name, t.debt
 from organization o
-    join (
-      select
-        c."organizationId",
-        max(c.amount) - sum(p.amount) debt
-      from contract c
-        join payment p on p."contractId" = c.id
-      where c."organizationId" not in (select "organisationId"
-                                       from shipment
-                                       where "realDeliveryDate" is null)
-      group by 1
-      having max(c.amount) <> sum(p.amount)
-    ) t on t."organizationId" = o.id
+  join (
+         select c.organization_id, max(c.amount) - sum(p.amount) debt
+         from contract c
+           join payment p using(contract_id)
+         where c.organization_id not in (select organisation_id
+                                         from shipment
+                                         where real_delivery_date is null)
+         group by 1
+         having max(c.amount) <> sum(p.amount)
+       ) t using(organization_id)
 order by 2 desc
